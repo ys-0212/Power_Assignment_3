@@ -1,0 +1,716 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Power Transmission Line Analysis — Assignment 3
+   Academic / Engineering Portal Stylesheet
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #f8f9fb;
+  --bg-card: #ffffff;
+  --text: #1a1a2e;
+  --text-secondary: #5a5a7a;
+  --text-muted: #8e8ea0;
+  --border: #e2e4ea;
+  --border-light: #eff0f3;
+  --primary: #2563eb;
+  --primary-light: #eff6ff;
+  --primary-dark: #1e40af;
+  --accent-green: #059669;
+  --accent-green-bg: #ecfdf5;
+  --accent-amber: #d97706;
+  --accent-amber-bg: #fffbeb;
+  --accent-red: #dc2626;
+  --accent-red-bg: #fef2f2;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  --radius: 8px;
+  --radius-sm: 4px;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Layout ───────────────────────────────────────────────────────────────── */
+
+.app-container {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+/* ─── Header ───────────────────────────────────────────────────────────────── */
+
+.app-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.app-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.app-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* ─── Cards ────────────────────────────────────────────────────────────────── */
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.card-title svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ─── Mode Toggle ──────────────────────────────────────────────────────────── */
+
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.mode-btn {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  background: var(--bg);
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mode-btn.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.mode-btn:not(.active):hover {
+  background: var(--border-light);
+}
+
+/* ─── Input Form ───────────────────────────────────────────────────────────── */
+
+.input-form {
+  margin-bottom: 1rem;
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.input-field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.input-field input,
+.input-field select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.input-field input:focus,
+.input-field select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.pf-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pf-row input {
+  flex: 1;
+}
+
+.pf-row select {
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.student-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--primary-light);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+  width: fit-content;
+}
+
+.student-badge-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--primary-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.student-badge-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.error-msg {
+  background: var(--accent-red-bg);
+  color: var(--accent-red);
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(220, 38, 38, 0.15);
+}
+
+.calc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.75rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.calc-btn:hover {
+  background: var(--primary-dark);
+}
+
+.calc-btn svg {
+  flex-shrink: 0;
+}
+
+/* ─── Parameter Summary ────────────────────────────────────────────────────── */
+
+.param-group {
+  margin-bottom: 1.25rem;
+}
+
+.param-group:last-child {
+  margin-bottom: 0;
+}
+
+.param-group-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.param-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.param-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.9rem;
+}
+
+.param-table tr:last-child td {
+  border-bottom: none;
+}
+
+.param-table td:first-child {
+  color: var(--text-secondary);
+  width: 50%;
+}
+
+.param-table td.val {
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.derived-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.derived-cell {
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+  text-align: center;
+}
+
+.derived-key {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.derived-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.constants-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.const-chip {
+  padding: 0.35rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Line Classification ──────────────────────────────────────────────────── */
+
+.classification-content {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.classification-length {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.classification-badge {
+  display: inline-block;
+  padding: 0.4rem 1.25rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.badge-short {
+  background: var(--accent-green-bg);
+  color: var(--accent-green);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.badge-medium {
+  background: var(--accent-amber-bg);
+  color: var(--accent-amber);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.badge-long {
+  background: var(--accent-red-bg);
+  color: var(--accent-red);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.classification-model {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+
+.classification-reason {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* ─── Transmission Diagram ─────────────────────────────────────────────────── */
+
+.diagram-container {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.tl-diagram {
+  max-width: 600px;
+  width: 100%;
+  height: auto;
+}
+
+.diagram-label {
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--text);
+}
+
+.diagram-sublabel {
+  font-size: 11px;
+  fill: var(--text-muted);
+  font-style: italic;
+}
+
+/* ─── Result Cards ─────────────────────────────────────────────────────────── */
+
+.result-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.result-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  text-align: center;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.result-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.06);
+}
+
+.result-card-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.result-card-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+.result-card-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+/* ─── ABCD Parameters ──────────────────────────────────────────────────────── */
+
+.abcd-equation {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  overflow-x: auto;
+}
+
+.abcd-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.abcd-cell {
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+}
+
+.abcd-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.3rem;
+}
+
+.abcd-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+.abcd-polar {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+}
+
+.abcd-unit {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.abcd-check {
+  text-align: center;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: var(--accent-green-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(5, 150, 105, 0.15);
+}
+
+.check-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: 0.5rem;
+}
+
+/* ─── Calculation Steps ────────────────────────────────────────────────────── */
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step-block {
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  position: relative;
+}
+
+.step-block:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 36px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+
+.step-indicator {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.step-num {
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.step-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.step-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.step-equation {
+  margin-bottom: 0.5rem;
+}
+
+.equation-box {
+  padding: 0.75rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin-top: 0.25rem;
+}
+
+.step-label {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.2rem;
+}
+
+.step-detail {
+  margin-bottom: 0.4rem;
+}
+
+.step-text {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.step-result-box {
+  background: var(--primary-light);
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.3rem;
+}
+
+.step-result-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+/* ─── Footer ───────────────────────────────────────────────────────────────── */
+
+.app-footer {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+}
+
+.app-footer p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .app-container {
+    padding: 1rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .result-cards-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .derived-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .abcd-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .step-block {
+    gap: 0.75rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .constants-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 400px) {
+  .result-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-toggle {
+    width: 100%;
+  }
+
+  .mode-btn {
+    flex: 1;
+    text-align: center;
+  }
+}

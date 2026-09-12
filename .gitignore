@@ -1,0 +1,11 @@
+# Node.js
+node_modules/
+dist/
+
+# Environment
+.env
+
+# Project specific unwanted files for github
+*.pdf
+docs/
+test-example.ts
