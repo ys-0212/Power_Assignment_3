@@ -1,16 +1,19 @@
 import React from 'react';
 import { MEMBERS } from '../data/members';
 import { LineParams, deriveAssignmentParams } from '../calculations/transmissionLine';
+import { ManualInputState } from '../App';
 
 interface Props {
   mode: 'assignment' | 'manual';
   onModeChange: (mode: 'assignment' | 'manual') => void;
   memberNumber: number;
   groupNumber: number;
-  manualParams: LineParams;
+  assignmentPhase: '3-Phase' | '1-Phase';
+  onAssignmentPhaseChange: (phase: '3-Phase' | '1-Phase') => void;
+  manualParams: ManualInputState;
   onMemberChange: (n: number) => void;
   onGroupChange: (n: number) => void;
-  onManualChange: (params: Partial<LineParams>) => void;
+  onManualChange: (params: Partial<ManualInputState>) => void;
   onCalculate: () => void;
   error?: string;
 }
@@ -18,6 +21,7 @@ interface Props {
 export function InputSection({
   mode, onModeChange,
   memberNumber, groupNumber,
+  assignmentPhase, onAssignmentPhaseChange,
   manualParams, onMemberChange, onGroupChange, onManualChange,
   onCalculate, error,
 }: Props) {
@@ -95,15 +99,26 @@ export function InputSection({
                 </div>
                 <div className="input-group-header">Resulting Electrical Parameters</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  <span>System Type: 3-Phase</span>
+                  <span>System Type: {assignmentPhase}</span>
                   <span>Line Length: {d.L} km</span>
                   <span>Receiving Power: {d.P_R_MW} MW</span>
-                  <span>Receiving Voltage: 220 kV L-L</span>
+                  <span>Receiving Voltage: {assignmentPhase === '3-Phase' ? '220 kV L-L' : '220 kV'}</span>
                   <span>Power Factor: {d.PF_R} Lagging</span>
                 </div>
               </div>
             );
           })()}
+
+          <div className="input-row" style={{ marginTop: '1rem' }}>
+            <div className="input-field">
+              <label htmlFor="a-system">System Type</label>
+              <select id="a-system" value={assignmentPhase}
+                onChange={e => onAssignmentPhaseChange(e.target.value as '3-Phase' | '1-Phase')}>
+                <option value="3-Phase">3-Phase</option>
+                <option value="1-Phase">1-Phase</option>
+              </select>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="input-form">
@@ -112,12 +127,12 @@ export function InputSection({
             <div className="input-field">
               <label htmlFor="m-freq">Frequency (Hz)</label>
               <input id="m-freq" type="number" value={manualParams.frequencyHz}
-                onChange={e => onManualChange({ frequencyHz: parseFloat(e.target.value) || 50 })} />
+                onChange={e => onManualChange({ frequencyHz: e.target.value })} />
             </div>
             <div className="input-field">
               <label htmlFor="m-length">Line Length (km)</label>
               <input id="m-length" type="number" value={manualParams.lengthKm}
-                onChange={e => onManualChange({ lengthKm: parseFloat(e.target.value) || 0 })} />
+                onChange={e => onManualChange({ lengthKm: e.target.value })} />
             </div>
           </div>
           <div className="input-row">
@@ -136,12 +151,12 @@ export function InputSection({
             <div className="input-field">
               <label htmlFor="m-r">Resistance R (Ω/km/phase)</label>
               <input id="m-r" type="number" step="0.01" value={manualParams.rPerKm}
-                onChange={e => onManualChange({ rPerKm: parseFloat(e.target.value) || 0 })} />
+                onChange={e => onManualChange({ rPerKm: e.target.value })} />
             </div>
             <div className="input-field">
               <label htmlFor="m-x">Inductive Reactance X (Ω/km/phase)</label>
               <input id="m-x" type="number" step="0.01" value={manualParams.xPerKm}
-                onChange={e => onManualChange({ xPerKm: parseFloat(e.target.value) || 0 })} />
+                onChange={e => onManualChange({ xPerKm: e.target.value })} />
             </div>
           </div>
 
@@ -150,12 +165,12 @@ export function InputSection({
             <div className="input-field">
               <label htmlFor="m-g">Conductance G (S/km/phase)</label>
               <input id="m-g" type="number" step="1e-7" value={manualParams.gPerKm}
-                onChange={e => onManualChange({ gPerKm: parseFloat(e.target.value) || 0 })} />
+                onChange={e => onManualChange({ gPerKm: e.target.value })} />
             </div>
             <div className="input-field">
               <label htmlFor="m-b">Susceptance B (S/km/phase)</label>
               <input id="m-b" type="number" step="1e-7" value={manualParams.bPerKm}
-                onChange={e => onManualChange({ bPerKm: parseFloat(e.target.value) || 0 })} />
+                onChange={e => onManualChange({ bPerKm: e.target.value })} />
             </div>
           </div>
 
@@ -166,12 +181,12 @@ export function InputSection({
                 {manualParams.phaseSystem === '3-Phase' ? 'Receiving-End Voltage V_R (kV L-L)' : 'Receiving-End Voltage V_R (kV)'}
               </label>
               <input id="m-vr" type="number" value={manualParams.V_R_LL_kV}
-                onChange={e => onManualChange({ V_R_LL_kV: parseFloat(e.target.value) || 0 })} />
+                onChange={e => onManualChange({ V_R_LL_kV: e.target.value })} />
             </div>
             <div className="input-field">
               <label htmlFor="m-pr">Receiving-End Active Power P_R (MW)</label>
               <input id="m-pr" type="number" value={manualParams.P_R_MW}
-                onChange={e => onManualChange({ P_R_MW: parseFloat(e.target.value) || 0 })} />
+                onChange={e => onManualChange({ P_R_MW: e.target.value })} />
             </div>
           </div>
           <div className="input-row">
@@ -180,7 +195,7 @@ export function InputSection({
               <div className="pf-row">
                 <input id="m-pf" type="number" step="0.01" min="0.01" max="1"
                   value={manualParams.PF_R}
-                  onChange={e => onManualChange({ PF_R: parseFloat(e.target.value) || 0.8 })} />
+                  onChange={e => onManualChange({ PF_R: e.target.value })} />
                 <select value={manualParams.pfType}
                   onChange={e => onManualChange({ pfType: e.target.value as 'lagging' | 'leading' })}>
                   <option value="lagging">Lagging</option>
@@ -188,16 +203,7 @@ export function InputSection({
                 </select>
               </div>
             </div>
-            {manualParams.lengthKm > 80 && manualParams.lengthKm <= 250 && (
-              <div className="input-field">
-                <label htmlFor="m-model">Medium-Line Model</label>
-                <select id="m-model" value={manualParams.mediumModel || 'Nominal-Pi'}
-                  onChange={e => onManualChange({ mediumModel: e.target.value as 'Nominal-Pi' | 'Nominal-T' })}>
-                  <option value="Nominal-Pi">Nominal-π</option>
-                  <option value="Nominal-T">Nominal-T</option>
-                </select>
-              </div>
-            )}
+
           </div>
         </div>
       )}

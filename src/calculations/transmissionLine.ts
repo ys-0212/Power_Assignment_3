@@ -166,8 +166,10 @@ export function solveTransmissionLine(
     modelReason = `Line length = ${params.lengthKm} km (≤ 80 km). Shunt capacitance is negligible and ignored.`;
   } else if (params.lengthKm <= 250) {
     classification = 'Medium';
-    const medModel = params.mediumModel || 'Nominal-Pi';
-    modelName = medModel === 'Nominal-Pi' ? 'Nominal-π Model' : 'Nominal-T Model';
+    // The portal strictly uses Nominal-Pi for Medium lines per assignment specifications.
+    // We override any leftover model parameters to enforce this.
+    params.mediumModel = 'Nominal-Pi'; 
+    modelName = 'Nominal-π Model';
     modelReason = `Line length = ${params.lengthKm} km (80 < L ≤ 250 km). Charging capacitance is modelled as lumped parameters.`;
   } else {
     classification = 'Long';
