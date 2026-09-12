@@ -8,10 +8,13 @@ export interface LineParams {
   rPerKm: number;      // Ω/km
   xPerKm: number;      // Ω/km
   bPerKm: number;      // S/km (susceptance, imaginary part of y)
-  V_R_LL_kV: number;   // Receiving-end line-to-line voltage in kV
+  gPerKm: number;      // S/km (conductance, real part of y)
+  V_R_LL_kV: number;   // Receiving-end line-to-line voltage in kV (used directly for 1-phase)
   P_R_MW: number;      // Receiving-end active power in MW
   PF_R: number;        // Receiving-end power factor (0 < PF ≤ 1)
   pfType: 'lagging' | 'leading';
+  mediumModel?: 'Nominal-Pi' | 'Nominal-T';
+  phaseSystem: '3-Phase' | '1-Phase';
 }
 
 export interface AssignmentInput {
@@ -113,10 +116,13 @@ export function assignmentToLineParams(input: AssignmentInput): LineParams {
     rPerKm: 0.1,
     xPerKm: 1.0,
     bPerKm: 2.8e-6,
+    gPerKm: 0,
     V_R_LL_kV: 220,
     P_R_MW: derived.P_R_MW,
     PF_R: derived.PF_R,
     pfType: 'lagging',
+    mediumModel: 'Nominal-Pi',
+    phaseSystem: '3-Phase',
   };
 }
 
@@ -145,7 +151,7 @@ export function solveTransmissionLine(
 
   // ── Total Z and Y ──
   const z_per_km = new Complex(params.rPerKm, params.xPerKm);
-  const y_per_km = new Complex(0, params.bPerKm);
+  const y_per_km = new Complex(params.gPerKm, params.bPerKm);
   const Z = z_per_km.mul(params.lengthKm);
   const Y = y_per_km.mul(params.lengthKm);
 
@@ -160,7 +166,8 @@ export function solveTransmissionLine(
     modelReason = `Line length = ${params.lengthKm} km (≤ 80 km). Shunt capacitance is negligible and ignored.`;
   } else if (params.lengthKm <= 250) {
     classification = 'Medium';
-    modelName = 'Nominal-π Model';
+    const medModel = params.mediumModel || 'Nominal-Pi';
+    modelName = medModel === 'Nominal-Pi' ? 'Nominal-π Model' : 'Nominal-T Model';
     modelReason = `Line length = ${params.lengthKm} km (80 < L ≤ 250 km). Charging capacitance is modelled as lumped parameters.`;
   } else {
     classification = 'Long';
@@ -195,17 +202,29 @@ export function solveTransmissionLine(
     const ZY = Z.mul(Y);
     A = new Complex(1, 0).add(ZY.div(2));
     D = A;
-    B = Z;
-    C = Y.mul(new Complex(1, 0).add(ZY.div(4)));
-
-    steps.push({
-      number: nextStep(),
-      title: 'ABCD Parameters (Nominal-π)',
-      latex: String.raw`A = D = 1 + \frac{ZY}{2}, \quad B = Z, \quad C = Y\!\left(1 + \frac{ZY}{4}\right)`,
-      substitution: `Z = ${Z.toString(4)} Ω, Y = ${Y.toString(6)} S`,
-      resultLatex: String.raw`A = ${A.toString(4)}, \; B = ${B.toString(4)} \;\Omega, \; C = ${C.toString(6)} \;\text{S}`,
-      result: `A = ${A.toString(4)}, B = ${B.toString(4)} Ω, C = ${C.toString(6)} S, D = ${D.toString(4)}`,
-    });
+    if (params.mediumModel === 'Nominal-T') {
+      B = Z.mul(new Complex(1, 0).add(ZY.div(4)));
+      C = Y;
+      steps.push({
+        number: nextStep(),
+        title: 'ABCD Parameters (Nominal-T)',
+        latex: String.raw`A = D = 1 + \frac{ZY}{2}, \quad B = Z\!\left(1 + \frac{ZY}{4}\right), \quad C = Y`,
+        substitution: `Z = ${Z.toString(4)} Ω, Y = ${Y.toString(6)} S`,
+        resultLatex: String.raw`A = ${A.toString(4)}, \; B = ${B.toString(4)} \;\Omega, \; C = ${C.toString(6)} \;\text{S}`,
+        result: `A = ${A.toString(4)}, B = ${B.toString(4)} Ω, C = ${C.toString(6)} S, D = ${D.toString(4)}`,
+      });
+    } else {
+      B = Z;
+      C = Y.mul(new Complex(1, 0).add(ZY.div(4)));
+      steps.push({
+        number: nextStep(),
+        title: 'ABCD Parameters (Nominal-π)',
+        latex: String.raw`A = D = 1 + \frac{ZY}{2}, \quad B = Z, \quad C = Y\!\left(1 + \frac{ZY}{4}\right)`,
+        substitution: `Z = ${Z.toString(4)} Ω, Y = ${Y.toString(6)} S`,
+        resultLatex: String.raw`A = ${A.toString(4)}, \; B = ${B.toString(4)} \;\Omega, \; C = ${C.toString(6)} \;\text{S}`,
+        result: `A = ${A.toString(4)}, B = ${B.toString(4)} Ω, C = ${C.toString(6)} S, D = ${D.toString(4)}`,
+      });
+    }
   } else {
     // Long line: distributed parameters
     const gamma = z_per_km.mul(y_per_km).sqrt();
@@ -230,13 +249,15 @@ export function solveTransmissionLine(
   const adMinusBc = A.mul(D).sub(B.mul(C));
 
   // ── Step 4: Receiving-End Current ──
-  const V_R_ph_kV = params.V_R_LL_kV / Math.sqrt(3);
+  const is3Phase = params.phaseSystem === '3-Phase';
+  
+  const V_R_ph_kV = is3Phase ? params.V_R_LL_kV / Math.sqrt(3) : params.V_R_LL_kV;
   const V_R = new Complex(V_R_ph_kV, 0); // reference phasor, kV
 
   const thetaR = Math.acos(params.PF_R);
   const Q_R_MVAR = params.P_R_MW * Math.tan(thetaR) * (params.pfType === 'lagging' ? 1 : -1);
-  const S_R_total = new Complex(params.P_R_MW, Q_R_MVAR); // MVA 3φ
-  const S_R_ph = S_R_total.div(3); // MVA per phase
+  const S_R_total = new Complex(params.P_R_MW, Q_R_MVAR); // MVA total
+  const S_R_ph = is3Phase ? S_R_total.div(3) : S_R_total; // MVA per phase
 
   // I_R = (S_R_ph / V_R_ph)* → (MVA / kV) = kA → ×1000 = A
   const I_R = S_R_ph.div(V_R).conjugate().mul(1000);
@@ -244,8 +265,10 @@ export function solveTransmissionLine(
   steps.push({
     number: nextStep(),
     title: 'Receiving-End Quantities',
-    latex: String.raw`V_{R(ph)} = \frac{V_{R(LL)}}{\sqrt{3}}, \quad Q_R = P_R \tan(\cos^{-1}\text{pf}_R), \quad I_R = \left(\frac{S_{R(ph)}}{V_{R(ph)}}\right)^*`,
-    substitution: `V_R(ph) = ${V_R_ph_kV.toFixed(3)} kV, S_R = ${S_R_total.toString(3)} MVA, S_R(ph) = ${S_R_ph.toString(3)} MVA`,
+    latex: is3Phase 
+      ? String.raw`V_{R(ph)} = \frac{V_{R(LL)}}{\sqrt{3}}, \quad Q_R = P_R \tan(\cos^{-1}\text{pf}_R), \quad I_R = \left(\frac{S_{R(ph)}}{V_{R(ph)}}\right)^*`
+      : String.raw`V_{R(ph)} = V_R, \quad Q_R = P_R \tan(\cos^{-1}\text{pf}_R), \quad I_R = \left(\frac{S_R}{V_R}\right)^*`,
+    substitution: `V_R(ph) = ${V_R_ph_kV.toFixed(3)} kV, S_R_total = ${S_R_total.toString(3)} MVA, S_R(ph) = ${S_R_ph.toString(3)} MVA`,
     resultLatex: String.raw`I_R = ${I_R.mag.toFixed(2)} \angle ${I_R.angleDeg.toFixed(2)}° \text{ A}`,
     result: `I_R = ${I_R.toPolarString(2)} A`,
   });
@@ -255,15 +278,19 @@ export function solveTransmissionLine(
   const V_R_V = V_R.mul(1000); // V
   const V_S_V = A.mul(V_R_V).add(B.mul(I_R));
   const V_S_ph = V_S_V.div(1000); // back to kV
-  const V_S_LL_kV = V_S_ph.mag * Math.sqrt(3);
+  const V_S_LL_kV = is3Phase ? V_S_ph.mag * Math.sqrt(3) : V_S_ph.mag;
 
   steps.push({
     number: nextStep(),
     title: 'Sending-End Voltage',
     latex: String.raw`V_S = A \cdot V_R + B \cdot I_R`,
     substitution: `A·V_R = ${A.mul(V_R_V).toString(2)} V, B·I_R = ${B.mul(I_R).toString(2)} V`,
-    resultLatex: String.raw`V_{S(ph)} = ${V_S_ph.toPolarString(2)} \text{ kV}, \quad V_{S(LL)} = ${V_S_LL_kV.toFixed(3)} \text{ kV}`,
-    result: `V_S(ph) = ${V_S_ph.toPolarString(2)} kV, V_S(LL) = ${V_S_LL_kV.toFixed(3)} kV`,
+    resultLatex: is3Phase 
+      ? String.raw`V_{S(ph)} = ${V_S_ph.toPolarString(2)} \text{ kV}, \quad V_{S(LL)} = ${V_S_LL_kV.toFixed(3)} \text{ kV}`
+      : String.raw`V_S = ${V_S_ph.toPolarString(2)} \text{ kV}`,
+    result: is3Phase 
+      ? `V_S(ph) = ${V_S_ph.toPolarString(2)} kV, V_S(LL) = ${V_S_LL_kV.toFixed(3)} kV`
+      : `V_S = ${V_S_ph.toPolarString(2)} kV`,
   });
 
   // ── Step 6: Sending-End Current ──
@@ -279,9 +306,9 @@ export function solveTransmissionLine(
   });
 
   // ── Step 7: Sending-End Power ──
-  // S_S_ph = V_S(kV) × I_S*(A) = kVA per phase → ÷1000 = MVA, ×3 = 3φ MVA
+  // S_S_ph = V_S(kV) × I_S*(A) = kVA per phase → ÷1000 = MVA
   const S_S_ph_kVA = V_S_ph.mul(I_S.conjugate()); // kVA
-  const S_S_total = S_S_ph_kVA.mul(3).div(1000); // MVA 3φ
+  const S_S_total = is3Phase ? S_S_ph_kVA.mul(3).div(1000) : S_S_ph_kVA.div(1000); // MVA total
   const P_S_MW = S_S_total.r;
   const Q_S_MVAR = S_S_total.i;
   const S_S_mag = S_S_total.mag;

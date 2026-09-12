@@ -21,10 +21,13 @@ const DEFAULT_MANUAL: LineParams = {
   rPerKm: 0.1,
   xPerKm: 0.5,
   bPerKm: 3e-6,
+  gPerKm: 0,
   V_R_LL_kV: 110,
   P_R_MW: 50,
   PF_R: 0.8,
   pfType: 'lagging',
+  mediumModel: 'Nominal-Pi',
+  phaseSystem: '3-Phase',
 };
 
 export default function App() {
@@ -63,14 +66,43 @@ export default function App() {
         const res = solveTransmissionLine(lineParams, derived);
         setResult(res);
       } else {
+        if (manualParams.frequencyHz <= 0) {
+          setError('Frequency must be greater than 0 Hz.');
+          return;
+        }
         if (manualParams.lengthKm <= 0) {
           setError('Line length must be positive.');
           return;
         }
-        if (manualParams.PF_R <= 0 || manualParams.PF_R > 1) {
-          setError('Power factor must be between 0 (exclusive) and 1.');
+        if (manualParams.rPerKm < 0) {
+          setError('Resistance cannot be negative.');
           return;
         }
+        if (manualParams.xPerKm < 0) {
+          setError('Reactance cannot be negative.');
+          return;
+        }
+        if (manualParams.gPerKm < 0) {
+          setError('Conductance cannot be negative.');
+          return;
+        }
+        if (manualParams.bPerKm < 0) {
+          setError('Susceptance cannot be negative.');
+          return;
+        }
+        if (manualParams.V_R_LL_kV <= 0) {
+          setError('Receiving-end voltage must be greater than 0 kV.');
+          return;
+        }
+        if (manualParams.P_R_MW <= 0) {
+          setError('Receiving-end power must be greater than 0 MW.');
+          return;
+        }
+        if (manualParams.PF_R <= 0 || manualParams.PF_R > 1) {
+          setError('Power factor must be strictly greater than 0 and less than or equal to 1.');
+          return;
+        }
+        
         const res = solveTransmissionLine(manualParams);
         setResult(res);
       }

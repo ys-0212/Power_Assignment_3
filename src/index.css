@@ -153,6 +153,21 @@ body {
   margin-bottom: 1rem;
 }
 
+.input-group-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.input-group-header:first-of-type {
+  margin-top: 0;
+}
+
 .input-field label {
   display: block;
   font-size: 0.8rem;

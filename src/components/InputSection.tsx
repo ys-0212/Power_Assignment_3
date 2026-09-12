@@ -1,6 +1,6 @@
 import React from 'react';
 import { MEMBERS } from '../data/members';
-import { LineParams } from '../calculations/transmissionLine';
+import { LineParams, deriveAssignmentParams } from '../calculations/transmissionLine';
 
 interface Props {
   mode: 'assignment' | 'manual';
@@ -81,9 +81,33 @@ export function InputSection({
               <span className="student-badge-name">{memberName}</span>
             </div>
           )}
+
+          {(() => {
+            const d = deriveAssignmentParams({ memberNumber, groupNumber });
+            return (
+              <div className="assignment-derived">
+                <div className="input-group-header">Derived Constants</div>
+                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                  <span>K = {d.K}</span>
+                  <span>J = {d.J}</span>
+                  <span>XX = {d.XX}</span>
+                  <span>m = {d.m}</span>
+                </div>
+                <div className="input-group-header">Resulting Electrical Parameters</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  <span>System Type: 3-Phase</span>
+                  <span>Line Length: {d.L} km</span>
+                  <span>Receiving Power: {d.P_R_MW} MW</span>
+                  <span>Receiving Voltage: 220 kV L-L</span>
+                  <span>Power Factor: {d.PF_R} Lagging</span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       ) : (
         <div className="input-form">
+          <div className="input-group-header">System / Line Info</div>
           <div className="input-row">
             <div className="input-field">
               <label htmlFor="m-freq">Frequency (Hz)</label>
@@ -98,34 +122,59 @@ export function InputSection({
           </div>
           <div className="input-row">
             <div className="input-field">
-              <label htmlFor="m-r">Resistance (Ω/km)</label>
+              <label htmlFor="m-system">System Type</label>
+              <select id="m-system" value={manualParams.phaseSystem}
+                onChange={e => onManualChange({ phaseSystem: e.target.value as '3-Phase' | '1-Phase' })}>
+                <option value="3-Phase">3-Phase</option>
+                <option value="1-Phase">1-Phase</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="input-group-header">Series Impedance z</div>
+          <div className="input-row">
+            <div className="input-field">
+              <label htmlFor="m-r">Resistance R (Ω/km/phase)</label>
               <input id="m-r" type="number" step="0.01" value={manualParams.rPerKm}
                 onChange={e => onManualChange({ rPerKm: parseFloat(e.target.value) || 0 })} />
             </div>
             <div className="input-field">
-              <label htmlFor="m-x">Reactance (Ω/km)</label>
+              <label htmlFor="m-x">Inductive Reactance X (Ω/km/phase)</label>
               <input id="m-x" type="number" step="0.01" value={manualParams.xPerKm}
                 onChange={e => onManualChange({ xPerKm: parseFloat(e.target.value) || 0 })} />
             </div>
           </div>
+
+          <div className="input-group-header">Shunt Admittance y</div>
           <div className="input-row">
             <div className="input-field">
-              <label htmlFor="m-b">Shunt Susceptance (S/km)</label>
+              <label htmlFor="m-g">Conductance G (S/km/phase)</label>
+              <input id="m-g" type="number" step="1e-7" value={manualParams.gPerKm}
+                onChange={e => onManualChange({ gPerKm: parseFloat(e.target.value) || 0 })} />
+            </div>
+            <div className="input-field">
+              <label htmlFor="m-b">Susceptance B (S/km/phase)</label>
               <input id="m-b" type="number" step="1e-7" value={manualParams.bPerKm}
                 onChange={e => onManualChange({ bPerKm: parseFloat(e.target.value) || 0 })} />
             </div>
+          </div>
+
+          <div className="input-group-header">Receiving-End Operating Condition</div>
+          <div className="input-row">
             <div className="input-field">
-              <label htmlFor="m-vr">Receiving Voltage (kV L-L)</label>
+              <label htmlFor="m-vr">
+                {manualParams.phaseSystem === '3-Phase' ? 'Receiving-End Voltage V_R (kV L-L)' : 'Receiving-End Voltage V_R (kV)'}
+              </label>
               <input id="m-vr" type="number" value={manualParams.V_R_LL_kV}
                 onChange={e => onManualChange({ V_R_LL_kV: parseFloat(e.target.value) || 0 })} />
             </div>
-          </div>
-          <div className="input-row">
             <div className="input-field">
-              <label htmlFor="m-pr">Receiving Power (MW)</label>
+              <label htmlFor="m-pr">Receiving-End Active Power P_R (MW)</label>
               <input id="m-pr" type="number" value={manualParams.P_R_MW}
                 onChange={e => onManualChange({ P_R_MW: parseFloat(e.target.value) || 0 })} />
             </div>
+          </div>
+          <div className="input-row">
             <div className="input-field">
               <label htmlFor="m-pf">Power Factor</label>
               <div className="pf-row">
@@ -139,6 +188,16 @@ export function InputSection({
                 </select>
               </div>
             </div>
+            {manualParams.lengthKm > 80 && manualParams.lengthKm <= 250 && (
+              <div className="input-field">
+                <label htmlFor="m-model">Medium-Line Model</label>
+                <select id="m-model" value={manualParams.mediumModel || 'Nominal-Pi'}
+                  onChange={e => onManualChange({ mediumModel: e.target.value as 'Nominal-Pi' | 'Nominal-T' })}>
+                  <option value="Nominal-Pi">Nominal-π</option>
+                  <option value="Nominal-T">Nominal-T</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
       )}
