@@ -135,8 +135,8 @@ export default function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>Power Transmission Line Analysis</h1>
-        <p className="app-subtitle">Assignment 3 · Transmission Line Performance Calculator</p>
+        <h1>Group 14 Power System Assignment 3</h1>
+        <p className="app-subtitle">Power Transmission Line Performance Calculator</p>
       </header>
 
       <InputSection
